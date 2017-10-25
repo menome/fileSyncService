@@ -1,0 +1,43 @@
+{
+  "name": "filesyncservice",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Synchronizes data from Minio with nodes in neo4j",
+  "repository": "https://github.com/menome",
+  "license": "Commercial",
+  "dependencies": {
+    "forever": "latest",
+    "nodemon": "latest",
+    "amqplib": "^0.5.1",
+    "textract": "^2.1.2",
+    "easyimage": "^2.1.0",
+    "mime-types": "^2.1.15",
+    "express": "latest",
+    "body-parser": "^1.15.2",
+    "minio": "latest",
+    "neo4j-driver": "latest",
+    "request": "latest",
+    "decypher": "^0.11.0",
+    "uuid": "latest",
+    "metascraper": "1.0.6",
+    "unfluff": "latest",
+    "lda": "0.1.9",
+    "colors": "^1.0.3",
+    "mkdirp": "^0.5.0",
+    "q": "^1.0.1",
+    "convict": "latest",
+    "@menome/botframework": "^1.0.2"
+  },
+  "devDependencies": {
+    "mocha": "^2.5.3",
+    "chai": "^3.5.0",
+    "supertest": "^3.0.0",
+    "mock-require": "^2.0.1"
+  },
+  "scripts": {
+    "start": "[ \"$NODE_ENV\" = \"production\" ] && npm run prod || npm run dev",
+    "dev": "node ./node_modules/nodemon/bin/nodemon.js app/app.js",
+    "prod": "./node_modules/forever/bin/forever --minUptime 5000 --spinSleepTime 1000 app/app.js",
+    "test": "./node_modules/mocha/bin/mocha -C test"
+  }
+}
