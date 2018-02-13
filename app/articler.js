@@ -104,7 +104,7 @@ function extractMetadata(url, articleInfo) {
         return resolve(metadata);
       })
     } catch (err) {
-      bot.logger.error("Caught that goddam error" + err);
+      bot.logger.error("Caught error" + err);
       return resolve(err);
     }
   });

@@ -28,8 +28,12 @@ bot.registerEndpoint({
   "method": "POST",
   "desc": "Syncs the graph with the current Minio contents."
 }, function(req,res) {
-  res.status(501).send("Not yet Implemented.")
-  // fullsync.startSync();
+  res.status(501).send(
+    bot.responseWrapper({
+      status: "failure",
+      message: "Not yet Implemented"
+    })
+  )
 });
 
 // Register our addURL endpoint
@@ -42,8 +46,17 @@ bot.registerEndpoint({
   bot.logger.info("Adding URL:" + "<" + req.body["url"] + ">");
   //article info json blob
   articler.addArticle(JSON.stringify(req.body["url"])).then((err) => {
-    if (err) return res.status(500).send("Failed to add Article")
-    return res.status(200).send("Article Added")
+    if(err) return res.status(500).send(bot.responseWrapper({
+      status: "failure",
+      message: "Failed to add Article"
+    }))
+
+    return res.send(
+      bot.responseWrapper({
+        status: "success",
+        message: "Added Article"
+      })
+    )
   })
 });
 
