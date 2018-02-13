@@ -27,7 +27,7 @@ module.exports = [
       var query = new Query();
       query.match("(f:File:Facet), (c:ReportType {Name:'Geotechnical Report'})");
       query.where("f <> c AND f.Uri = {uri} AND lower({uri}) contains 'geotech'",{uri: fileObj.urlWithBucket});
-      query.merge("(f)-[:REPORT_TYPE]->(c)");
+      query.merge("(f)-[:HAS_FACET]->(c)");
       return query;
     }, 
     // schematic reports
@@ -35,7 +35,7 @@ module.exports = [
         var query = new Query();
         query.match("(f:File:Facet), (c:ReportType {Name:'SD Report'})");
         query.where("f <> c AND f.Uri  = {uri} AND lower({uri}) contains 'schema'",{uri: fileObj.urlWithBucket});
-        query.merge("(f)-[:REPORT_TYPE]->(c)");
+        query.merge("(f)-[:HAS_FACET]->(c)");
         return query;
       },
      // development reports
@@ -43,7 +43,7 @@ module.exports = [
         var query = new Query();
         query.match("(f:File:Facet), (c:ReportType {Name:'DD Report'})");
         query.where("f <> c AND f.Uri  = {uri} AND lower({uri}) contains 'dd report' or lower({uri}) contains 'devel'",{uri: fileObj.urlWithBucket});
-        query.merge("(f)-[:REPORT_TYPE]->(c)");
+        query.merge("(f)-[:HAS_FACET]->(c)");
         return query;
       },
       // tecnical design reports
@@ -51,7 +51,7 @@ module.exports = [
           var query = new Query();
         query.match("(f:File:Facet), (c:ReportType {Name:'TD Report'})");
         query.where("f <> c AND f.Uri  = {uri} AND lower({uri}) contains 'td report' or lower({uri}) contains 'technical'",{uri: fileObj.urlWithBucket});
-        query.merge("(f)-[:REPORT_TYPE]->(c)");
+        query.merge("(f)-[:HAS_FACET]->(c)");
         return query;
       },
       // final reports
@@ -59,7 +59,7 @@ module.exports = [
         var query = new Query();
         query.match("(f:File:Facet), (c:ReportType {Name:'Final Report'})");
         query.where("f <> c AND f.Uri  = {uri} AND lower({uri}) contains 'final'",{uri: fileObj.urlWithBucket});
-        query.merge("(f)-[:REPORT_TYPE]->(c)");
+        query.merge("(f)-[:HAS_FACET]->(c)");
         return query;
       },
       // structural reports
@@ -67,7 +67,7 @@ module.exports = [
         var query = new Query();
         query.match("(f:File:Facet), (c:ReportType {Name:'Structural Report'})");
         query.where("f <> c AND f.Uri = {uri} AND lower({uri}) contains 'structural'",{uri: fileObj.urlWithBucket});
-        query.merge("(f)-[:REPORT_TYPE]->(c)");
+        query.merge("(f)-[:HAS_FACET]->(c)");
         return query;
       }
 ];
