@@ -28,7 +28,7 @@ module.exports = [
       // for now assume site exists.
       var fileExt = fileObj.urlWithBucket.split('.').pop();
       if(fileExt.length > 4) return null;
-      var fileTypeStr="(c:FileType:Facet {Name:'" + fileExt + "'})";
+      var fileTypeStr="(c:FileType:Facet {Name:'" + fileExt.toLowerCase() + "'})";
       var query = new Query();
       query.match("(f:File:Card)");
       query.where("f.Uri = {uri} ",{uri: fileObj.urlWithBucket});
