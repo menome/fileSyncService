@@ -5,19 +5,25 @@
  * TODO: These should be swift and synchronous. We'll need a better framework for async queries.
  * (Such as more in-depth ML/NLP/TM strategies.)
  */
+var helpers = require('../app/helpers');
 var Query = require('decypher').Query;
 
+ 
 module.exports = [
   
   // BASE FILE HANDLING
   // If any Facet shares a name with a folder on this guy's filepath, attach it.
   function(fileObj) {
+    // dont run if this is an image
+    if(helpers.isImage(fileObj.urlWithBucket)) return null;
+
     // for now assume site exists.
     var nodeNames = fileObj.urlWithBucket.split('/');
     if(nodeNames.length < 1) return null;
-    var siteCode=nodeNames[0].substring(0,6);
+    var siteCode=nodeNames[1].substring(0,6);
+
     var query = new Query();
-    query.match("(f:File:Facet), (c:Site)");
+    query.match("(f:File:Card), (c:Site)");
     query.where("f <> c AND f.Uri  = {uri} AND c.Code contains {siteCode}",{uri: fileObj.urlWithBucket, siteCode: siteCode});
     query.merge("(f)-[:FILE_ATTACHED_TO]->(c)");
     return query;
@@ -39,6 +45,9 @@ module.exports = [
 
   // geotech reports
   function(fileObj){
+     // dont run if this is an image
+      if(helpers.isImage(fileObj.urlWithBucket)) return null;
+
       var filename = fileObj.urlWithBucket.toLowerCase(); 
       var query = new Query();
       query.match("(f:File:Card), (c:ReportType {Name:'Geotechnical Report'})");
@@ -48,6 +57,9 @@ module.exports = [
     }, 
     // schematic reports
       function(fileObj){
+         // dont run if this is an image
+        if(helpers.isImage(fileObj.urlWithBucket)) return null;
+
         var query = new Query();
         query.match("(f:File:Card), (c:ReportType {Name:'SD Report'})");
         query.where("f <> c AND f.Uri  = {uri} AND lower({uri}) contains 'schema'",{uri: fileObj.urlWithBucket});
@@ -56,6 +68,9 @@ module.exports = [
       },
      // development reports
       function(fileObj){
+         // dont run if this is an image
+        if(helpers.isImage(fileObj.urlWithBucket)) return null;
+
         var query = new Query();
         query.match("(f:File:Card), (c:ReportType {Name:'DD Report'})");
         query.where("f <> c AND f.Uri  = {uri} AND lower({uri}) contains 'dd report' or lower({uri}) contains 'devel'",{uri: fileObj.urlWithBucket});
@@ -64,6 +79,8 @@ module.exports = [
       },
       // tecnical design reports
       function(fileObj){
+        if(helpers.isImage(fileObj.urlWithBucket)) return null;
+
           var query = new Query();
         query.match("(f:File:Card), (c:ReportType {Name:'TD Report'})");
         query.where("f <> c AND f.Uri  = {uri} AND lower({uri}) contains 'td report' or lower({uri}) contains 'technical'",{uri: fileObj.urlWithBucket});
@@ -72,6 +89,8 @@ module.exports = [
       },
       // final reports
       function(fileObj){
+        if(helpers.isImage(fileObj.urlWithBucket)) return null;
+
         var query = new Query();
         query.match("(f:File:Card), (c:ReportType {Name:'Final Report'})");
         query.where("f <> c AND f.Uri  = {uri} AND lower({uri}) contains 'final'",{uri: fileObj.urlWithBucket});
@@ -80,6 +99,8 @@ module.exports = [
       },
       // structural reports
       function(fileObj){
+        if(helpers.isImage(fileObj.urlWithBucket)) return null;
+
         var query = new Query();
         query.match("(f:File:Card), (c:ReportType {Name:'Structural Report'})");
         query.where("f <> c AND f.Uri = {uri} AND lower({uri}) contains 'structural'",{uri: fileObj.urlWithBucket});
@@ -99,13 +120,13 @@ module.exports = [
         query.match("(f:File:Card)");
         query.where("f.Uri  = {uri} ",{uri: fileObj.urlWithBucket});
         query.match("(p:Project:Card)");
-        query.where("p.Uuid={projectUuid}",{projectUuid: projectUuid});
+        query.where("p.Uuid={projectUuid} set f.ProjectName=p.Name",{projectUuid: projectUuid});
         query.merge("(f)-[:FILE_ATTACHED_TO]->(p)");
         return query;
       },
 
       // wire up hero images
-            // link up the images
+      // link up the images
       // use UUID off upload object to look up project node - set if no hero (profileImage)
       function(fileObj){
         // pull the project UUID
@@ -116,12 +137,11 @@ module.exports = [
         var query = new Query();
         query.match("(p:Project:Card)");
         query.where("p.Uuid={projectUuid} and not exists(p.ProfileImage) set p.ProfileImage={url}",{projectUuid: projectUuid,url:fileObj.urlWithBucket});
-        query.merge("(f)-[:FILE_ATTACHED_TO]->(p)");
         return query;
       },
 
-          // wire up hero images
-            // link up the images
+      // wire up hero images
+      // link up the images
       // use UUID off upload object to look up project node - set if no photo (photoURl)
       function(fileObj){
         // pull the project UUID
@@ -132,7 +152,9 @@ module.exports = [
         var query = new Query();
         query.match("(p:Project:Card)");
         query.where("p.Uuid={projectUuid} and not exists(p.PhotoUrl) set p.PhotoUrl={url}",{projectUuid: projectUuid,url:fileObj.urlWithBucket});
-        query.merge("(f)-[:FILE_ATTACHED_TO]->(p)");
+
         return query;
       }
+
+
 ];
