@@ -34,6 +34,7 @@ function addFileQuery(fileObj) {
     LastModified: fileObj.lastModified.toUTCString(),
     ImportId: fileObj.importId,
     PendingUpload: false,
+    Extension: fileObj.urlWithBucket.split('.').pop()
   };
 
   query.merge("(f:File:Card {Uri: {uri}})",{uri: params.Uri})
@@ -108,10 +109,11 @@ function addSummaryTextQuery(uri, summaryText) {
 /**
  * Returns a query that updates the file node by setting thumbnail = true
  */
-function addThumbnailQuery(uri) {
+function addThumbnailQuery(uri, profileImageUri) {
   var query = new Query();
   query.match("(f:File:Card {Uri: {uri}})", {uri: uri})
   query.set("f.Thumbnail = true")
+  query.set("f.ProfileImage={profileImage}", {profileImage:profileImageUri} )
   return query;
 }
 
