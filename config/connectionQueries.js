@@ -150,7 +150,8 @@ module.exports = [
         query.match("(f:File:Card)");
         query.where("f.Uri  = {uri} ",{uri: fileObj.urlWithBucket});
         query.match("(p:Project:Card)");
-        query.where("p.Uuid={projectUuid} set f.ProjectName=p.Name",{projectUuid: projectUuid});
+        query.where("p.Uuid={projectUuid}",{projectUuid: projectUuid});
+        query.set("f.ProjectName=p.Name");
         query.merge("(f)-[:FILE_ATTACHED_TO]->(p)");
         return query;
       },
