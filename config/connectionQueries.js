@@ -32,7 +32,6 @@ module.exports = [
 
     // extract file extention as facet
     function(fileObj) {
-      
       var fileExt = fileObj.urlWithBucket.split('.').pop();
       bot.logger.info(fileExt); 
       bot.logger.info("File Extension " + fileExt); 
@@ -117,10 +116,28 @@ module.exports = [
         return query;
       },
 
-      // link up the images
+      /// --------------------------------------------------------
+      // Image handling functions
+      
+      // Set Profile image for image file
+      function(fileObj){
+        var query = new Query();
+        if(!helpers.isImage(fileObj.urlWithBucket)) return query.match("(r:Role) return count(r)");
+        bot.logger.info("Set Profile Image for Image"); 
+
+        // pull the project UUID
+        var nodeNames = fileObj.urlWithBucket.split('/');
+        if(nodeNames.length < 1) return null;
+        var projectUuid=nodeNames[1];
+        
+        query.match("(f:File:Card)");
+        query.where("f.Uri  = {uri} and not exists(f.ProfileImage) set f.ProfileImage={uri}",{uri: fileObj.urlWithBucket});
+        return query;
+      },
+
+      // Link Image To Project Node
       // use UUID off upload object to look up project node 
       function(fileObj){
-        bot.logger.info("Image link to project");
         var query = new Query();
         if(!helpers.isImage(fileObj.urlWithBucket)) return query.match("(r:Role) return count(r)");
         bot.logger.info("Image link to project start"); 
@@ -129,7 +146,6 @@ module.exports = [
         var nodeNames = fileObj.urlWithBucket.split('/');
         if(nodeNames.length < 1) return null;
         var projectUuid=nodeNames[1];
-
         
         query.match("(f:File:Card)");
         query.where("f.Uri  = {uri} ",{uri: fileObj.urlWithBucket});
@@ -139,40 +155,35 @@ module.exports = [
         return query;
       },
 
-      // wire up hero images
-      // link up the images
+      // LINK IMAGES TO PROJECTS
+      // Set Project Profile Image
       // use UUID off upload object to look up project node - set if no hero (profileImage)
       function(fileObj){
-        bot.logger.info("Set profile"); 
         var query = new Query();
         if(!helpers.isImage(fileObj.urlWithBucket)) return query.match("(r:Role) return count(r)");
-        bot.logger.info("Set profile start"); 
+        bot.logger.info("Set profile"); 
 
         // pull the project UUID
         var nodeNames = fileObj.urlWithBucket.split('/');
         if(nodeNames.length < 1) return null;
         var projectUuid=nodeNames[1];
 
-        
         query.match("(p:Project:Card)");
         query.where("p.Uuid={projectUuid} and not exists(p.ProfileImage) set p.ProfileImage={url}",{projectUuid: projectUuid,url:fileObj.urlWithBucket});
         return query;
       },
 
-      // wire up hero images
-      // link up the images
+      // Project Thumbnail
       // use UUID off upload object to look up project node - set if no photo (photoURl)
       function(fileObj){
-        bot.logger.info("Set Project Thumbnail"); 
         var query = new Query();
         if(!helpers.isImage(fileObj.urlWithBucket)) return query.match("(r:Role) return count(r)");
-        bot.logger.info("Set Project Thumbnail start"); 
+        bot.logger.info("Set Project Thumbnail"); 
 
         // pull the project UUID
         var nodeNames = fileObj.urlWithBucket.split('/');
         if(nodeNames.length < 1) return null;
         var projectUuid=nodeNames[1];
-
         
         query.match("(p:Project:Card)");
         query.where("p.Uuid={projectUuid} and not exists(p.PhotoUrl) set p.PhotoUrl={url}",{projectUuid: projectUuid,url:fileObj.urlWithBucket});
