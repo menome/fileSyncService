@@ -27,7 +27,7 @@ module.exports = {
 function addFileQuery(fileObj) {
   var query = new Query();
   var params = {
-    Name: fileObj.key.substring(fileObj.key.lastIndexOf('/')+1),
+    Name: fileObj.name.substring(fileObj.name.lastIndexOf('/')+1),
     Size: fileObj.size,
     Uri: fileObj.urlWithBucket,
     Uuid: bot.genUuid(),

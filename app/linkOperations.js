@@ -21,7 +21,7 @@ module.exports = {
   linkFile,
 }
 
-// var textGenerationMimeTypes = [];
+var textGenerationMimeBlacklist = ['image/png', 'image/jpeg', 'image/gif'];
 var thumbnailMimeTypes = ['image/jpeg','image/gif','image/png', 'application/pdf'];
 
 // Determines which link operations to run on the file.
@@ -89,7 +89,7 @@ function getChecksum(file, uri) {
 
 // Extracts summary text from file
 function extractSummaryText(mimetype, file, uri) {
-  if(mimetype) {
+  if(textGenerationMimeBlacklist.indexOf(mimetype) === -1) {
     bot.logger.info("Attempting Text Extraction for summarization from file '%s'", uri)
 
     return new Promise(function(resolve) {
@@ -113,7 +113,7 @@ function extractSummaryText(mimetype, file, uri) {
     });
   }
   else {
-    bot.logger.info("Could not determine MIME type. Skipping.")
+    bot.logger.info("Not a fulltext-extractable MIME type. Skipping.")
     return Promise.resolve();
   }
 }
