@@ -133,13 +133,15 @@ function generateThumbnail(mimetype, file, uri, uuid) {
       x:0, y:0
     }).then(function(image) {
       return new Promise((resolve, reject) => {
+        
         minioClient.fPutObject('card-thumbs',uuid+'.jpg', thumbnailPath, "image/jpeg", function(err,etag) {
           if(err) return err;
           //We'll remove the generated thumbnail locally
           fs.unlink(thumbnailPath, function(err) {if(err) bot.logger.error(err)});
-
+          
+          var profileImageUri= 'card-thumbs/' + uuid +'.jpg';
           // Set Thumbnail=true on the node to get the thumbnail displaying properly.
-          var enableThumbQuery = queryBuilder.addThumbnailQuery(uri)
+          var enableThumbQuery = queryBuilder.addThumbnailQuery(uri, profileImageUri)
           return bot.query(enableThumbQuery.compile(),enableThumbQuery.params())
             .then(function(result) {
               bot.logger.info("Enabled thumbnail for file: '%s'", uri);
