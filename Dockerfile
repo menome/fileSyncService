@@ -6,7 +6,7 @@ EXPOSE 80
 ENV PORT 80
 
 # Install stuff for text processing
-RUN apt-get update && apt-get install -y xpdf tesseract-ocr antiword imagemagick ghostscript
+RUN apt-get update && apt-get install -y unoconv libav-tools curl xpdf tesseract-ocr antiword imagemagick ghostscript
 
 # Commands will run in this directory
 RUN mkdir /srv/fileSyncService
