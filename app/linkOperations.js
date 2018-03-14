@@ -54,6 +54,7 @@ function linkFile(event, uuid) {
         Promise.all(actions)
         .then(function(result) {
           fs.unlink(tmpPath, function() {resolve();});
+          return deleteFromMinio(uri, bucket, key)
         })
         .catch(function(error) {
           bot.logger.error("Operation failed: %s", error.message);
@@ -195,3 +196,13 @@ function markCorrupt(uri){
     })
 }
 
+// If the file exists in some filestore, delete it from Minio.
+function deleteFromMinio(uri, bucket, key) {
+  var shouldDeleteQuery = queryBuilder.checkIsInFilestoreQuery(uri)
+  return bot.query(shouldDeleteQuery.compile(), shouldDeleteQuery.params()).then((result) => {
+    if(result.records.length > 0 && result.records[0].get('exists') === true) {
+      bot.logger.info("Attempting to delete '%s' as it exists in the filesystem.", uri);
+      return minioClient.removeObject(bucket, key)
+    }
+  })
+}

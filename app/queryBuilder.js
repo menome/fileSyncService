@@ -16,7 +16,8 @@ module.exports = {
   addSummaryTextQuery,
   addArticleQuery,
   addChecksumQuery,
-  setCorruptFlagQuery
+  setCorruptFlagQuery,
+  checkIsInFilestoreQuery
 }
 
 /** 
@@ -91,6 +92,16 @@ function addChecksumQuery(uri, checksum) {
   var query = new Query();
   query.match("(f:File:Card {Uri: {uri}})", {uri: uri})
   query.set("f.SHA256 = {checksum}", {checksum: checksum})
+  return query;
+}
+
+/**
+ * Returns true if the file exists in the filestore.
+ */
+function checkIsInFilestoreQuery(uri) {
+  var query = new Query();
+  query.match("(f:File:Card {Uri: {uri}})", {uri: uri})
+  query.return("f.ExistsInFilestore as exists");
   return query;
 }
 
