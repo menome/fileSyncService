@@ -81,7 +81,7 @@ function addNode(fileObj) {
 function deleteNode(fileObj) {
   var shouldDeleteQuery = queryBuilder.checkIsInFilestoreQuery(fileObj.urlWithBucket)
   return bot.query(shouldDeleteQuery.compile(), shouldDeleteQuery.params()).then((result) => {
-    if(result.records && result.records[0].get('exists') !== true)
+    if(!!result.records && result.records[0].get('exists') === true)
       return Promise.resolve(true);
       
     var queryObj = queryBuilder.removeFileQuery(fileObj);
