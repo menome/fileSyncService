@@ -26,6 +26,6 @@
     "url": "amqp://rabbitmq:rabbitmq@rabbit:5672?heartbeat=3600",
     "routingKey": "fanExchange.added",
     "exchange": "fanExchange",
-    "exchangeType": "fanout"
+    "exchangeType": "topic"
   }
 }
