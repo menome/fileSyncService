@@ -37,11 +37,12 @@ function linkFile(event, uuid) {
     // Download the file to a temp location. To be deleted when we finish.
     minioClient.fGetObject(bucket, key, tmpPath, function(err) {
       if (err) { return reject(err) }
-      var actions = [];
 
       //check if the file is corrupt
       checkCorrupt(tmpPath, uri)
       .then(function(isCorrupt){
+        var actions = [];
+
         actions.push(getChecksum(tmpPath, uri));
         if(!isCorrupt){
           actions.push(generateThumbnail(mime.lookup(uri), tmpPath, uri, uuid));
@@ -49,7 +50,8 @@ function linkFile(event, uuid) {
         }else{
           actions.push(markCorrupt(uri));
         }
-      }).then(function(){
+        return actions;
+      }).then(function(actions){
         // Wait for all actions to finish.
         Promise.all(actions)
         .then(function(result) {
@@ -125,47 +127,44 @@ function generateThumbnail(mimetype, file, uri, uuid) {
   // if(thumbnailMimeTypes.indexOf(mimetype) !== -1) {
     bot.logger.info("Attempting thumb Extraction for file '%s'", uri)
     var thumbnailPath = file+'-thumbnail.jpg';
-    // var filePath = mimetype === 'application/pdf' ? file+'\[0\]' : file;
 
     var options = {
       width: 400, quality: 90
     }
 
-    console.log(file)
     return new Promise((resolve,reject) => {
-      filepreview.generate(file,thumbnailPath,options,(err) => {
-        if(err) reject(err);
-
-        minioClient.fPutObject('card-thumbs',uuid+'.jpg', thumbnailPath, "image/jpeg", function(err,etag) {
-          if(err) return err;
-          //We'll remove the generated thumbnail locally
-          fs.unlink(thumbnailPath, function(err) {if(err) bot.logger.error(err)});
-          
-          var profileImageUri= 'card-thumbs/' + uuid +'.jpg';
-          // Set Thumbnail=true on the node to get the thumbnail displaying properly.
-          var enableThumbQuery = queryBuilder.addThumbnailQuery(uri, profileImageUri)
-          return bot.query(enableThumbQuery.compile(),enableThumbQuery.params()).then(function(result) {
-            bot.logger.info("Enabled thumbnail for file: '%s'", uri);
-            return resolve(result);
-          }).catch(function(err) {
-            bot.logger.error("Could not enable thumbnail for file '%s': %s", uri, err.message);
-            markCorrupt(uri);
-            return resolve(err);
-          })
-        });
-      })
+      if(!filepreview.generateSync(file, thumbnailPath, options))
+        return reject("Could not enable thumbnail for file.");
+      
+      minioClient.fPutObject('card-thumbs',uuid+'.jpg', thumbnailPath, "image/jpeg", function(err,etag) {
+        if(err) return reject(err);
+        //We'll remove the generated thumbnail locally
+        fs.unlink(thumbnailPath, function(err) {if(err) bot.logger.error(err)});
+        
+        var profileImageUri= 'card-thumbs/' + uuid +'.jpg';
+        // Set Thumbnail=true on the node to get the thumbnail displaying properly.
+        var enableThumbQuery = queryBuilder.addThumbnailQuery(uri, profileImageUri)
+        return bot.query(enableThumbQuery.compile(),enableThumbQuery.params()).then(function(result) {
+          bot.logger.info("Enabled thumbnail for file: '%s'", uri);
+          return resolve(result);
+        }).catch(function(err) {
+          bot.logger.error("Could not enable thumbnail for file '%s': %s", uri, err.message);
+          markCorrupt(uri);
+          return reject(err);
+        })
+      });
     }).catch(function(err) {
       bot.logger.error("Could not enable thumbnail for file '%s': %s", uri, err.message);
       return err;
     })
     
-  return Promise.resolve();
+  // return Promise.resolve();
 }
 
 function checkCorrupt(tmpPath, file) {
   return new Promise(function(resolve,reject) {
     var extention = mime.lookup(file);
-    bot.logger.info("File: " + file + "\nMime = " + extention);
+
     if(extention.indexOf("pdf") !== -1){
       var args = ['--mime-type']
       args.push(tmpPath)
