@@ -167,9 +167,9 @@ function generateThumbnail(mimetype, file, uri, uuid) {
 
 function checkCorrupt(tmpPath, file) {
   return new Promise(function(resolve,reject) {
-    var extention = mime.lookup(file);
+    var extension = mime.lookup(file);
 
-    if(extention.indexOf("pdf") !== -1){
+    if(typeof extension === 'string' && extension.indexOf("pdf") !== -1){
       var args = ['--mime-type']
       args.push(tmpPath)
       var child = exec('file', args, function(err, stdout, stderr) {

@@ -30,7 +30,7 @@ module.exports = [
     return query;
   },
 
-    // extract file extention as facet
+    // extract file extension as facet
     function(fileObj) {
       var fileExt = fileObj.urlWithBucket.split('.').pop();
       bot.logger.info(fileExt); 
