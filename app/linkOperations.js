@@ -9,6 +9,7 @@ var minioClient = require('./minioClient');
 var queryBuilder = require('./queryBuilder');
 var textract = require('textract');
 var mime = require('mime-types');
+var {timeout, TimeoutError} = require('promise-timeout');
 var filepreview = require('filepreview');
 var crypto = require('crypto');
 var os = require('os');   
@@ -124,18 +125,17 @@ function extractSummaryText(mimetype, file, uri) {
 
 // Gets a thumbnail for the file.
 function generateThumbnail(mimetype, file, uri, uuid) {
-  // if(thumbnailMimeTypes.indexOf(mimetype) !== -1) {
-    bot.logger.info("Attempting thumb Extraction for file '%s'", uri)
-    var thumbnailPath = file+'-thumbnail.jpg';
+  bot.logger.info("Attempting thumb Extraction for file '%s'", uri)
+  var thumbnailPath = file+'-thumbnail.jpg';
 
-    var options = {
-      width: 400, quality: 90
-    }
+  var options = {
+    width: 400, quality: 90
+  }
 
-    return new Promise((resolve,reject) => {
-      if(!filepreview.generateSync(file, thumbnailPath, options))
-        return reject("Could not enable thumbnail for file.");
-      
+  var thumbPromise = new Promise((resolve,reject) => {
+    filepreview.generate(file,thumbnailPath,options,(err) => {
+      if(err) reject(err);
+
       minioClient.fPutObject('card-thumbs',uuid+'.jpg', thumbnailPath, "image/jpeg", function(err,etag) {
         if(err) return reject(err);
         //We'll remove the generated thumbnail locally
@@ -153,12 +153,16 @@ function generateThumbnail(mimetype, file, uri, uuid) {
           return reject(err);
         })
       });
-    }).catch(function(err) {
-      bot.logger.error("Could not enable thumbnail for file '%s': %s", uri, err.message);
-      return err;
     })
-    
-  // return Promise.resolve();
+  })
+  
+  return timeout(thumbPromise, 10000).catch(function(err) {
+    if (err instanceof TimeoutError)
+      bot.logger.error("Thumbnail generation timed out. Skipping.");
+    else
+      bot.logger.error("Could not enable thumbnail for file '%s': %s", uri, err.message);
+    return err;
+  })
 }
 
 function checkCorrupt(tmpPath, file) {
