@@ -34,6 +34,12 @@ function linkFile(event, uuid) {
   var buffs = [];
   var tmpPath = path.join(os.tmpdir(), 'fss_file_' + bot.genUuid() + key.substr(key.lastIndexOf('.')));
 
+  // If it's a hidden file or a temp file, purge it.
+  if(key.startsWith("~") || key.startsWith(".")) {
+    bot.logger.info("File is a temporary or hidden file. Purging.")
+    return purge(uri, bucket, key);
+  }
+
   return new Promise(function(resolve,reject) {
     // Download the file to a temp location. To be deleted when we finish.
     minioClient.fGetObject(bucket, key, tmpPath, function(err) {
@@ -208,4 +214,16 @@ function deleteFromMinio(uri, bucket, key) {
       return minioClient.removeObject(bucket, key)
     }
   })
+}
+
+function purge(uri, bucket, key) {
+  // Delete it from the graph.
+  var queryObj = queryBuilder.removeFileQuery({urlWithBucket: uri});
+  return bot.query(queryObj.compile(), queryObj.params())
+    .then(function (result) {
+      bot.logger.info("Deleted node for '%s'. Purging from Minio.", key);
+      // Delete it from Minio
+      return minioClient.removeObject(bucket, key);
+    })
+  
 }
