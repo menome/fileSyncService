@@ -79,15 +79,20 @@ function addNode(fileObj) {
 }
 
 function deleteNode(fileObj) {
-  var queryObj = queryBuilder.removeFileQuery(fileObj);
+  var shouldDeleteQuery = queryBuilder.checkIsInFilestoreQuery(fileObj.urlWithBucket)
+  return bot.query(shouldDeleteQuery.compile(), shouldDeleteQuery.params()).then((result) => {
+    if(!!result.records && result.records[0].get('exists') === true)
+      return Promise.resolve(true);
+      
+    var queryObj = queryBuilder.removeFileQuery(fileObj);
 
-  return bot.query(queryObj.compile(), queryObj.params())
-    .then(function (result) {
-      bot.logger.info("Deleted node for '%s'.", fileObj.urlWithBucket);
-      return result;
-    })
-    .catch(function (err) {
-      bot.logger.error("Failed to delete node for '%s'. Error message was: %s", fileObj.urlWithBucket, err.message);
-      return result;
-    })
+    return bot.query(queryObj.compile(), queryObj.params())
+      .then(function (result) {
+        bot.logger.info("Deleted node for '%s'.", fileObj.urlWithBucket);
+        return result;
+      })
+  }).catch(function (err) {
+    bot.logger.error("Failed to delete node for '%s'. Error message was: %s", fileObj.urlWithBucket, err.message);
+    return result;
+  })
 }

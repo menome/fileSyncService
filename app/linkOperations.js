@@ -9,7 +9,7 @@ var minioClient = require('./minioClient');
 var queryBuilder = require('./queryBuilder');
 var textract = require('textract');
 var mime = require('mime-types');
-var easyimg = require('./EasyImage');
+var filepreview = require('filepreview');
 var crypto = require('crypto');
 var os = require('os');   
 var fs = require('fs');
@@ -21,8 +21,8 @@ module.exports = {
   linkFile,
 }
 
-// var textGenerationMimeTypes = [];
-var thumbnailMimeTypes = ['image/jpeg','image/gif','image/png', 'application/pdf'];
+var textGenerationMimeBlacklist = ['image/png', 'image/jpeg', 'image/gif'];
+var thumbnailMimeTypes = ['image/jpeg','image/gif','image/png', 'application/pdf', 'application/msword'];
 
 // Determines which link operations to run on the file.
 function linkFile(event, uuid) {
@@ -54,6 +54,7 @@ function linkFile(event, uuid) {
         Promise.all(actions)
         .then(function(result) {
           fs.unlink(tmpPath, function() {resolve();});
+          return deleteFromMinio(uri, bucket, key)
         })
         .catch(function(error) {
           bot.logger.error("Operation failed: %s", error.message);
@@ -89,7 +90,7 @@ function getChecksum(file, uri) {
 
 // Extracts summary text from file
 function extractSummaryText(mimetype, file, uri) {
-  if(mimetype) {
+  if(textGenerationMimeBlacklist.indexOf(mimetype) === -1) {
     bot.logger.info("Attempting Text Extraction for summarization from file '%s'", uri)
 
     return new Promise(function(resolve) {
@@ -113,7 +114,7 @@ function extractSummaryText(mimetype, file, uri) {
     });
   }
   else {
-    bot.logger.info("Could not determine MIME type. Skipping.")
+    bot.logger.info("Not a fulltext-extractable MIME type. Skipping.")
     return Promise.resolve();
   }
 }
@@ -121,44 +122,43 @@ function extractSummaryText(mimetype, file, uri) {
 
 // Gets a thumbnail for the file.
 function generateThumbnail(mimetype, file, uri, uuid) {
-  if(thumbnailMimeTypes.indexOf(mimetype) !== -1) {
+  // if(thumbnailMimeTypes.indexOf(mimetype) !== -1) {
     bot.logger.info("Attempting thumb Extraction for file '%s'", uri)
     var thumbnailPath = file+'-thumbnail.jpg';
-    var filePath = mimetype === 'application/pdf' ? file+'\[0\]' : file;
+    // var filePath = mimetype === 'application/pdf' ? file+'\[0\]' : file;
 
-    return easyimg.thumbnail({
-      src: filePath, dst: thumbnailPath,
-      width:400,
-      background: 'white', alpha: 'remove',
-      x:0, y:0
-    }).then(function(image) {
-      return new Promise((resolve, reject) => {
+    var options = {
+      width: 400, quality: 90
+    }
+
+    console.log(file)
+    return new Promise((resolve,reject) => {
+      filepreview.generate(file,thumbnailPath,options,(err) => {
+        if(err) reject(err);
+
         minioClient.fPutObject('card-thumbs',uuid+'.jpg', thumbnailPath, "image/jpeg", function(err,etag) {
           if(err) return reject(err);
           //We'll remove the generated thumbnail locally
           fs.unlink(thumbnailPath, function(err) {if(err) bot.logger.error(err)});
-
+          
+          var profileImageUri= 'card-thumbs/' + uuid +'.jpg';
           // Set Thumbnail=true on the node to get the thumbnail displaying properly.
-          var enableThumbQuery = queryBuilder.addThumbnailQuery(uri)
-          return bot.query(enableThumbQuery.compile(),enableThumbQuery.params())
-            .then(function(result) {
-              bot.logger.info("Enabled thumbnail for file: '%s'", uri);
-              return resolve(result);
-            })
-            .catch(function(err) {
-              bot.logger.error("Could not enable thumbnail for file '%s': %s", uri, err.message);
-              markCorrupt(uri);
-              return resolve(err);
-            })
-          });
-        })
-      }
-    ).catch(function(err) {
+          var enableThumbQuery = queryBuilder.addThumbnailQuery(uri, profileImageUri)
+          return bot.query(enableThumbQuery.compile(),enableThumbQuery.params()).then(function(result) {
+            bot.logger.info("Enabled thumbnail for file: '%s'", uri);
+            return resolve(result);
+          }).catch(function(err) {
+            bot.logger.error("Could not enable thumbnail for file '%s': %s", uri, err.message);
+            markCorrupt(uri);
+            return resolve(err);
+          })
+        });
+      })
+    }).catch(function(err) {
       bot.logger.error("Could not enable thumbnail for file '%s': %s", uri, err.message);
       return err;
     })
-  }
-
+    
   return Promise.resolve();
 }
 
@@ -196,3 +196,13 @@ function markCorrupt(uri){
     })
 }
 
+// If the file exists in some filestore, delete it from Minio.
+function deleteFromMinio(uri, bucket, key) {
+  var shouldDeleteQuery = queryBuilder.checkIsInFilestoreQuery(uri)
+  return bot.query(shouldDeleteQuery.compile(), shouldDeleteQuery.params()).then((result) => {
+    if(result.records.length > 0 && result.records[0].get('exists') === true) {
+      bot.logger.info("Attempting to delete '%s' as it exists in the filesystem.", uri);
+      return minioClient.removeObject(bucket, key)
+    }
+  })
+}

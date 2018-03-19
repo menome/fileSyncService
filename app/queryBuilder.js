@@ -16,7 +16,8 @@ module.exports = {
   addSummaryTextQuery,
   addArticleQuery,
   addChecksumQuery,
-  setCorruptFlagQuery
+  setCorruptFlagQuery,
+  checkIsInFilestoreQuery
 }
 
 /** 
@@ -27,13 +28,14 @@ module.exports = {
 function addFileQuery(fileObj) {
   var query = new Query();
   var params = {
-    Name: fileObj.key.substring(fileObj.key.lastIndexOf('/')+1),
+    Name:  fileObj.urlWithBucket.substring(fileObj.urlWithBucket.lastIndexOf('/')+1), //decodeURIComponent(fileObj.key.substring(fileObj.key.lastIndexOf('/')+1)),
     Size: fileObj.size,
     Uri: fileObj.urlWithBucket,
     Uuid: bot.genUuid(),
     LastModified: fileObj.lastModified.toUTCString(),
     ImportId: fileObj.importId,
     PendingUpload: false,
+    Extension: fileObj.urlWithBucket.split('.').pop()
   };
 
   query.merge("(f:File:Card {Uri: {uri}})",{uri: params.Uri})
@@ -94,6 +96,16 @@ function addChecksumQuery(uri, checksum) {
 }
 
 /**
+ * Returns true if the file exists in the filestore.
+ */
+function checkIsInFilestoreQuery(uri) {
+  var query = new Query();
+  query.match("(f:File:Card {Uri: {uri}})", {uri: uri})
+  query.return("f.ExistsInFilestore as exists");
+  return query;
+}
+
+/**
  * Returns a query that updates the given file node with an absolute fuckpile of text
  * in an indexed property.
  */
@@ -108,10 +120,11 @@ function addSummaryTextQuery(uri, summaryText) {
 /**
  * Returns a query that updates the file node by setting thumbnail = true
  */
-function addThumbnailQuery(uri) {
+function addThumbnailQuery(uri, profileImageUri) {
   var query = new Query();
   query.match("(f:File:Card {Uri: {uri}})", {uri: uri})
   query.set("f.Thumbnail = true")
+  query.set("f.ProfileImage={profileImage}", {profileImage:profileImageUri} )
   return query;
 }
 
