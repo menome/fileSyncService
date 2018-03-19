@@ -134,7 +134,7 @@ function generateThumbnail(mimetype, file, uri, uuid) {
     }).then(function(image) {
       return new Promise((resolve, reject) => {
         minioClient.fPutObject('card-thumbs',uuid+'.jpg', thumbnailPath, "image/jpeg", function(err,etag) {
-          if(err) return err;
+          if(err) return reject(err);
           //We'll remove the generated thumbnail locally
           fs.unlink(thumbnailPath, function(err) {if(err) bot.logger.error(err)});
 
