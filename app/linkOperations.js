@@ -17,6 +17,7 @@ var fs = require('fs');
 var path = require('path');
 var util = require('util');
 var exec = require('child_process').execFile
+var truncate = require("truncate-utf8-bytes");
 
 module.exports = {
   linkFile,
@@ -105,9 +106,10 @@ function extractSummaryText(mimetype, file, uri) {
     return new Promise(function(resolve) {
       textract.fromFileWithMimeAndPath(mimetype, file, function( error, text ) {
         if(error) return resolve(error);
+
         // Generate the fullText query
         // Truncate the text to just under 32k or Lucene will die a horrible death.
-        var addTextQuery = queryBuilder.addFullTextQuery(uri,text.substr(0,28000));
+        var addTextQuery = queryBuilder.addFullTextQuery(uri,truncate(text,30000));
 
         // If it worked, add the fulltext to the node, then add the summary
         bot.query(addTextQuery.compile(),addTextQuery.params())

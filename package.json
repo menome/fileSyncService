@@ -22,6 +22,7 @@
     "metascraper": "1.0.6",
     "unfluff": "latest",
     "convict": "latest",
+    "truncate-utf8-bytes": "^1.0.2",
     "@menome/botframework": "^1.1.0"
   },
   "devDependencies": {
