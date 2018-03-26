@@ -27,5 +27,8 @@
     "routingKey": "fanExchange.added",
     "exchange": "fanExchange",
     "exchangeType": "topic"
+  },
+  "fss": {
+    "thumbWidth": 400
   }
 }

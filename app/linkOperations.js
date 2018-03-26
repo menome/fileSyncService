@@ -137,7 +137,8 @@ function generateThumbnail(mimetype, file, uri, uuid) {
   var thumbnailPath = file+'-thumbnail.jpg';
 
   var options = {
-    width: 400, quality: 90
+    width: conf.get('fss.thumbWidth'), 
+    quality: 90
   }
 
   var thumbPromise = new Promise((resolve,reject) => {

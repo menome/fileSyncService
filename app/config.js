@@ -51,6 +51,14 @@ var config = convict({
   rabbit: bot.configSchema.rabbit,
   rabbit_outgoing: bot.configSchema.rabbit,
   neo4j: bot.configSchema.neo4j,
+  fss: {
+    thumbWidth: {
+      doc: "The width of generated thumbnails.",
+      format: "integer",
+      default: 400,
+      env: "FSS_THUMB_SIZE",
+    },
+  }
 })
 
 // Load from file.
