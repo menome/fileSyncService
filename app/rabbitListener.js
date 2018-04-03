@@ -58,7 +58,8 @@ function handleMessage(msg) {
 function addNode(fileObj) {
   fileObj.importId = bot.genUuid();
 
-  var queryObj = queryBuilder.addFileQuery(fileObj);
+  var newUuid = bot.genUuid();
+  var queryObj = queryBuilder.addFileQuery(fileObj, newUuid);
   var linkQueries = queryBuilder.fileConnectionQueries(fileObj);
 
   return bot.query(queryObj.compile(), queryObj.params())
@@ -71,7 +72,8 @@ function addNode(fileObj) {
           })
       })
       bot.logger.info("Added node for new file: '%s'", fileObj.urlWithBucket);
-      return queryObj.params().params.Uuid;
+
+      return result.records[0].get('uuid');
     })
     .catch(function (err) {
       bot.logger.info("Could not add node for new file '%s': %s", fileObj.urlWithBucket, err.code);

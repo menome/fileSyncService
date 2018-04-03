@@ -25,7 +25,7 @@ module.exports = {
  * Returns CQL query that will build the object.
  * Doesn't link it to anything. Just creates the basic node with all its properties.
  */
-function addFileQuery(fileObj) {
+function addFileQuery(fileObj, newUuid) {
   var query = new Query();
   var params = {
     Name:  fileObj.urlWithBucket.substring(fileObj.urlWithBucket.lastIndexOf('/')+1), //decodeURIComponent(fileObj.key.substring(fileObj.key.lastIndexOf('/')+1)),
@@ -37,11 +37,10 @@ function addFileQuery(fileObj) {
     Extension: fileObj.urlWithBucket.split('.').pop()
   };
 
-  var newUuid = bot.genUuid();
-
   query.merge("(f:File:Card {Uri: $uri})",{uri: params.Uri});
   query.with("f, f.Uuid as olduuid, exists(f.Uuid) as ex");
   query.set("f += $params,f.Uuid = case ex when true then olduuid else $newUuid end", {params: params, newUuid: newUuid});
+  query.return("f.Uuid as uuid");
   return query;
 }
 

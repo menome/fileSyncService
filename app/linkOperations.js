@@ -145,7 +145,7 @@ function generateThumbnail(mimetype, file, uri, uuid) {
     filepreview.generate(file,thumbnailPath,options,(err) => {
       if(err) reject(err);
 
-      minioClient.fPutObject('card-thumbs/File/',uuid+'.jpg', thumbnailPath, "image/jpeg", function(err,etag) {
+      minioClient.fPutObject('card-thumbs',"File/"+uuid+'.jpg', thumbnailPath, "image/jpeg", function(err,etag) {
         if(err) return reject(err);
 
         //We'll remove the generated thumbnail locally
