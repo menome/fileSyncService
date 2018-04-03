@@ -31,15 +31,17 @@ function addFileQuery(fileObj) {
     Name:  fileObj.urlWithBucket.substring(fileObj.urlWithBucket.lastIndexOf('/')+1), //decodeURIComponent(fileObj.key.substring(fileObj.key.lastIndexOf('/')+1)),
     Size: fileObj.size,
     Uri: fileObj.urlWithBucket,
-    Uuid: bot.genUuid(),
     LastModified: fileObj.lastModified.toUTCString(),
     ImportId: fileObj.importId,
     PendingUpload: false,
     Extension: fileObj.urlWithBucket.split('.').pop()
   };
 
-  query.merge("(f:File:Card {Uri: {uri}})",{uri: params.Uri})
-  query.set("f += {params}", {params: params});
+  var newUuid = bot.genUuid();
+
+  query.merge("(f:File:Card {Uri: $uri})",{uri: params.Uri});
+  query.with("f, f.Uuid as olduuid, exists(f.Uuid) as ex");
+  query.set("f += $params,f.Uuid = case ex when true then olduuid else $newUuid end", {params: params, newUuid: newUuid});
   return query;
 }
 

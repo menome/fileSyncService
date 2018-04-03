@@ -147,7 +147,7 @@ function generateThumbnail(mimetype, file, uri, uuid) {
 
       minioClient.fPutObject('card-thumbs',uuid+'.jpg', thumbnailPath, "image/jpeg", function(err,etag) {
         if(err) return reject(err);
-        
+
         //We'll remove the generated thumbnail locally
         fs.unlink(thumbnailPath, function(err) {if(err) bot.logger.error(err)});
         
@@ -172,7 +172,7 @@ function generateThumbnail(mimetype, file, uri, uuid) {
     if (err instanceof TimeoutError)
       bot.logger.error("Thumbnail generation timed out. Skipping.");
     else
-      bot.logger.error("Could not enable thumbnail for file '%s': %s", uri, err.message);
+      bot.logger.error("Could not generate thumbnail for file '%s': %s", uri, err.message);
     return err;
   })
 }
