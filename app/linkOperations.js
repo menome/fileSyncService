@@ -143,15 +143,13 @@ function generateThumbnail(mimetype, file, uri, uuid) {
 
   var thumbPromise = new Promise((resolve,reject) => {
     filepreview.generate(file,thumbnailPath,options,(err) => {
-      if(err) {
-        fs.unlink(thumbnailPath, function(err) {if(err) bot.logger.error(err)});
-        reject(err);
-      }
+      if(err) reject(err);
 
       minioClient.fPutObject('card-thumbs',uuid+'.jpg', thumbnailPath, "image/jpeg", function(err,etag) {
+        if(err) return reject(err);
+        
         //We'll remove the generated thumbnail locally
         fs.unlink(thumbnailPath, function(err) {if(err) bot.logger.error(err)});
-        if(err) return reject(err);
         
         var profileImageUri= 'card-thumbs/' + uuid +'.jpg';
         // Set Thumbnail=true on the node to get the thumbnail displaying properly.
@@ -169,6 +167,8 @@ function generateThumbnail(mimetype, file, uri, uuid) {
   })
   
   return timeout(thumbPromise, 10000).catch(function(err) {
+    fs.unlink(thumbnailPath, function(err) {if(err) bot.logger.error(err)});
+
     if (err instanceof TimeoutError)
       bot.logger.error("Thumbnail generation timed out. Skipping.");
     else
