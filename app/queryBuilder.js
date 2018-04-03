@@ -122,11 +122,11 @@ function addSummaryTextQuery(uri, summaryText) {
 /**
  * Returns a query that updates the file node by setting thumbnail = true
  */
-function addThumbnailQuery(uri, profileImageUri) {
+function addThumbnailQuery(uri, imageUri) {
   var query = new Query();
   query.match("(f:File:Card {Uri: {uri}})", {uri: uri})
-  query.set("f.Thumbnail = true")
-  query.set("f.ProfileImage={profileImage}", {profileImage:profileImageUri} )
+  query.set("f.Thumbnail = $profileImage")
+  query.set("f.ProfileImage= $profileImage", {profileImage:imageUri} )
   return query;
 }
 

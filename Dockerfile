@@ -2,6 +2,9 @@
 # This image will be based on the official nodejs docker image
 FROM node:8.4.0
 
+RUN mkdir /tmp/fss
+VOLUME ["/tmp/fss"]
+
 EXPOSE 80
 ENV PORT 80
 

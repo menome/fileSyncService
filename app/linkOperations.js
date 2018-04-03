@@ -33,7 +33,7 @@ function linkFile(event, uuid) {
   var key = event.Records[0].s3.object.name.replace(bucket+"/","");
   var uri = event.Key;
   var buffs = [];
-  var tmpPath = path.join(os.tmpdir(), 'fss_file_' + bot.genUuid() + key.substr(key.lastIndexOf('.')));
+  var tmpPath = path.join("/tmp/fss", 'fss_file_' + bot.genUuid() + key.substr(key.lastIndexOf('.')));
 
   // If it's a hidden file or a temp file, purge it.
   if(key.startsWith("~") || key.startsWith(".")) {
@@ -145,15 +145,15 @@ function generateThumbnail(mimetype, file, uri, uuid) {
     filepreview.generate(file,thumbnailPath,options,(err) => {
       if(err) reject(err);
 
-      minioClient.fPutObject('card-thumbs',uuid+'.jpg', thumbnailPath, "image/jpeg", function(err,etag) {
+      minioClient.fPutObject('card-thumbs/File/',uuid+'.jpg', thumbnailPath, "image/jpeg", function(err,etag) {
         if(err) return reject(err);
 
         //We'll remove the generated thumbnail locally
         fs.unlink(thumbnailPath, function(err) {if(err) bot.logger.error(err)});
         
-        var profileImageUri= 'card-thumbs/' + uuid +'.jpg';
+        var imageUri= 'card-thumbs/File/' + uuid +'.jpg';
         // Set Thumbnail=true on the node to get the thumbnail displaying properly.
-        var enableThumbQuery = queryBuilder.addThumbnailQuery(uri, profileImageUri)
+        var enableThumbQuery = queryBuilder.addThumbnailQuery(uri, imageUri)
         return bot.query(enableThumbQuery.compile(),enableThumbQuery.params()).then(function(result) {
           bot.logger.info("Enabled thumbnail for file: '%s'", uri);
           return resolve(result);
