@@ -43,7 +43,11 @@ function handleMessage(msg) {
     return addNode(fileObj).then(function (uuid) {
       return linkOperations.linkFile(msg, uuid).then((result) => {
         bot.logger.info("Operations finished. Placing on outgoing queue.")
-        rabbitClientOutgoing.publishMessage(msg)
+        var tm = {
+          "Key":msg.Key,
+          "EventType":msg.EventType,
+        }
+        rabbitClientOutgoing.publishMessage(tm)
         return Promise.resolve(true)
       })
     });
