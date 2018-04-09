@@ -80,10 +80,12 @@ function addNode(fileObj) {
     })
 }
 
+// Run when a FILE is deleted in Minio. Deletes the NODE in the graph.
 function deleteNode(fileObj) {
-  var shouldDeleteQuery = queryBuilder.checkIsInFilestoreQuery(fileObj.urlWithBucket)
+  var shouldDeleteQuery = queryBuilder.persistFileQuery(fileObj.urlWithBucket)
   return bot.query(shouldDeleteQuery.compile(), shouldDeleteQuery.params()).then((result) => {
-    if(!!result.records && result.records.length > 0 && result.records[0].get('exists') === true)
+    // If the file got deleted because we're not persisting it, just return true without deleting it from the graph.
+    if(!!result.records && result.records.length > 0 && result.records[0].get('persist') !== true)
       return Promise.resolve(true);
       
     var queryObj = queryBuilder.removeFileQuery(fileObj);

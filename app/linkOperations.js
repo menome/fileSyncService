@@ -213,10 +213,10 @@ function markCorrupt(uri){
 
 // If the file exists in some filestore, delete it from Minio.
 function deleteFromMinio(uri, bucket, key) {
-  var shouldDeleteQuery = queryBuilder.checkIsInFilestoreQuery(uri)
+  var shouldDeleteQuery = queryBuilder.persistFileQuery(uri)
   return bot.query(shouldDeleteQuery.compile(), shouldDeleteQuery.params()).then((result) => {
-    if(result.records.length > 0 && result.records[0].get('exists') === true) {
-      bot.logger.info("Attempting to delete '%s' as it exists in the filesystem.", uri);
+    if(result.records.length > 0 && result.records[0].get('persist') !== true) {
+      bot.logger.info("Attempting to delete '%s' from Minio as it already exists in another filesystem.", uri);
       return minioClient.removeObject(bucket, key)
     }
   })

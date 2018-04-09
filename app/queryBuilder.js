@@ -17,7 +17,7 @@ module.exports = {
   addArticleQuery,
   addChecksumQuery,
   setCorruptFlagQuery,
-  checkIsInFilestoreQuery
+  persistFileQuery
 }
 
 /** 
@@ -97,12 +97,12 @@ function addChecksumQuery(uri, checksum) {
 }
 
 /**
- * Returns true if the file exists in the filestore.
+ * Returns true if we should keep the file in the DB after a deletion.
  */
-function checkIsInFilestoreQuery(uri) {
+function persistFileQuery(uri) {
   var query = new Query();
   query.match("(f:File:Card {Uri: {uri}})", {uri: uri})
-  query.return("f.ExistsInFilestore as exists");
+  query.return("NOT f.ExistsInFilestore OR f.PersistFile as persist");
   return query;
 }
 
