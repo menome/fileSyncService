@@ -30,4 +30,4 @@ COPY ./app app
 COPY ./config config
 
 # CMD ["npm", "start"]
-CMD unoconv --listener; npm start
+CMD npm start
