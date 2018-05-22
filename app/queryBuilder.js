@@ -62,7 +62,7 @@ function addArticleQuery(articleObj){
     Publisher: articleObj.Properties.Publisher,
     FullText: articleObj.Properties.FullText
   }
-  query.merge("(a:Card:Article {Uri: {uri}})",{uri: params.Uri})
+  query.merge("(a:Card:File {Uri: {uri}})",{uri: params.Uri})
   query.set("a += {params}", {params: params});
   return query;
 }
