@@ -34,7 +34,8 @@ function addFileQuery(fileObj, newUuid) {
     LastModified: fileObj.lastModified.toUTCString(),
     ImportId: fileObj.importId,
     PendingUpload: false,
-    Extension: fileObj.urlWithBucket.split('.').pop()
+    Extension: fileObj.urlWithBucket.split('.').pop(),
+    PersistFile: true
   };
 
   query.merge("(f:File:Card {Uri: $uri})",{uri: params.Uri});
