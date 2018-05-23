@@ -50,7 +50,7 @@ function addFileQuery(fileObj, newUuid) {
  *  Return cql query that builds the object
  * Doesn't link it to anything
  */
-function addArticleQuery(articleObj){
+function addArticleQuery(articleObj, newUuid){
   var query = new Query();
   var params = {
     Name: articleObj.Name,
@@ -60,9 +60,10 @@ function addArticleQuery(articleObj){
     Author: articleObj.Properties.Author,
     DatePublished: articleObj.Properties.DatePublished,
     Publisher: articleObj.Properties.Publisher,
-    FullText: articleObj.Properties.FullText
-  }
-  query.merge("(a:Card:File {Uri: {uri}})",{uri: params.Uri})
+    FullText: articleObj.Properties.FullText,
+    Uuid: newUuid
+  };
+  query.merge("(a:Card:File {Uri: {uri}})",{uri: params.Uri});
   query.set("a += {params}", {params: params});
   return query;
 }

@@ -4,6 +4,7 @@
  * Entry point for parsing an article and extracting text
  */
 var conf = require('./config');
+var uuidv3 = require('uuid/v3');
 var amqp = require('amqplib/callback_api');
 var bot = require('@menome/botframework');
 var queryBuilder = require('./queryBuilder');
@@ -45,7 +46,7 @@ function addArticle(url, rabbitClient) {
         //bot.logger.info("Finished Extracting text\n" + JSON.stringify(articleInfo));
         //Now we need to add it to the neo4j graph
         //build the query
-        var queryObj = queryBuilder.addArticleQuery(articleInfo);
+        var queryObj = queryBuilder.addArticleQuery(articleInfo, uuidv3());
 
         bot.query(queryObj.compile(), queryObj.params())
           .then(function (result) {
