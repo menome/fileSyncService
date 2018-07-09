@@ -38,20 +38,20 @@ function handleMessage(msg) {
   fileObj.urlWithBucket = msg.Key;
 
   // If we created an object
-  if (/s3:ObjectCreated:*/.test(msg.EventType)) {
+  if (/s3:ObjectCreated:*/.test(msg.EventType) || /s3:ObjectCreated:*/.test(msg.EventName)) {
     fileObj.lastModified = new Date(msg.Records[0].eventTime);
     return addNode(fileObj).then(function (uuid) {
       return linkOperations.linkFile(msg, uuid).then((result) => {
         bot.logger.info("Operations finished. Placing on outgoing queue.")
         var tm = {
           "Key":msg.Key,
-          "EventType":msg.EventType,
+          "EventType": msg.EventType ? msg.EventType : msg.EventName,
         }
         rabbitClientOutgoing.publishMessage(tm)
         return Promise.resolve(true)
       })
     });
-  } else if (/s3:ObjectRemoved:*/.test(msg.EventType)) {
+  } else if (/s3:ObjectRemoved:*/.test(msg.EventType) || /s3:ObjectRemoved:*/.test(msg.EventName)) {
     return deleteNode(fileObj);
   } else {
     return Promise.resolve(true);
