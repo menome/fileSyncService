@@ -89,7 +89,7 @@ function deleteNode(fileObj) {
   var shouldDeleteQuery = queryBuilder.persistFileQuery(fileObj.urlWithBucket)
   return bot.query(shouldDeleteQuery.compile(), shouldDeleteQuery.params()).then((result) => {
     // If the file got deleted because we're not persisting it, just return true without deleting it from the graph.
-    if(!!result.records && result.records.length > 0 && result.records[0].get('persist') !== true)
+    if(!!result.records && result.records.length > 0 && !result.records[0].get('persist'))
       return Promise.resolve(true);
       
     var queryObj = queryBuilder.removeFileQuery(fileObj);

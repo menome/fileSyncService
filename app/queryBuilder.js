@@ -99,12 +99,12 @@ function addChecksumQuery(uri, checksum) {
 }
 
 /**
- * Returns true if we should keep the file in the DB after a deletion.
+ * Returns true if we should keep the file in Minio after processing
  */
 function persistFileQuery(uri) {
   var query = new Query();
   query.match("(f:File:Card {Uri: {uri}})", {uri: uri})
-  query.return("NOT f.ExistsInFilestore OR f.PersistFile as persist");
+  query.return("f.PersistFile as persist");
   return query;
 }
 

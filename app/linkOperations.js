@@ -215,7 +215,7 @@ function markCorrupt(uri){
 function deleteFromMinio(uri, bucket, key) {
   var shouldDeleteQuery = queryBuilder.persistFileQuery(uri)
   return bot.query(shouldDeleteQuery.compile(), shouldDeleteQuery.params()).then((result) => {
-    if(result.records.length > 0 && result.records[0].get('persist') !== true) {
+    if(result.records.length > 0 && !result.records[0].get('persist')) {
       bot.logger.info("Attempting to delete '%s' from Minio as it already exists in another filesystem.", uri);
       return minioClient.removeObject(bucket, key)
     }
