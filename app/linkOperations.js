@@ -61,7 +61,7 @@ function linkFile(event, uuid) {
         return actions;
       }).then(function(actions){
         // Wait for all actions to finish.
-        Promise.all(actions)
+        return Promise.all(actions)
         .then(function(result) {
           fs.unlink(tmpPath, function() {resolve();});
           return deleteFromMinio(uri, bucket, key)
@@ -145,7 +145,7 @@ function generateThumbnail(mimetype, file, uri, uuid) {
     filepreview.generate(file,thumbnailPath,options,(err) => {
       if(err) reject(err);
 
-      minioClient.fPutObject('card-thumbs',"File/"+uuid+'.jpg', thumbnailPath, "image/jpeg", function(err,etag) {
+      minioClient.fPutObject('card-thumbs',"File/"+uuid+'.jpg', thumbnailPath, {"Content-Type":"image/jpeg"}, function(err,etag) {
         if(err) return reject(err);
 
         //We'll remove the generated thumbnail locally
@@ -231,5 +231,4 @@ function purge(uri, bucket, key) {
       // Delete it from Minio
       return minioClient.removeObject(bucket, key);
     })
-  
 }

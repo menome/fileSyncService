@@ -34,11 +34,11 @@ function addFileQuery(fileObj, newUuid) {
     LastModified: fileObj.lastModified.toUTCString(),
     ImportId: fileObj.importId,
     PendingUpload: false,
-    Extension: fileObj.urlWithBucket.split('.').pop(),
-    PersistFile: true
+    Extension: fileObj.urlWithBucket.split('.').pop()
   };
 
   query.merge("(f:File:Card {Uri: $uri})",{uri: params.Uri});
+  query.add("ON CREATE SET f.PersistFile = true");
   query.with("f, f.Uuid as olduuid, exists(f.Uuid) as ex");
   query.set("f += $params,f.Uuid = case ex when true then olduuid else $newUuid end", {params: params, newUuid: newUuid});
   query.return("f.Uuid as uuid");
