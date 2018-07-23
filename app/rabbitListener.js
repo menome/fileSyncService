@@ -50,7 +50,9 @@ function handleMessage(msg) {
         rabbitClientOutgoing.publishMessage(tm)
         return Promise.resolve(true)
       })
-    });
+    }).catch((err) => {
+      bot.logger.error("Could not process file", err);
+    })
   } else if (/s3:ObjectRemoved:*/.test(msg.EventType) || /s3:ObjectRemoved:*/.test(msg.EventName)) {
     return deleteNode(fileObj);
   } else {
@@ -69,15 +71,18 @@ function addNode(fileObj) {
   return bot.query(queryObj.compile(), queryObj.params())
     .then(function (result) {
       // Then create our links.
-      linkQueries.forEach(function (val) {
-        bot.query(val.compile(), val.params())
+      var promiseList = linkQueries.map(function (val) {
+        return bot.query(val.compile(), val.params())
           .then(function (result) {
             return result;
           })
       })
-      bot.logger.info("Added node for new file: '%s'", fileObj.urlWithBucket);
 
-      return result.records[0].get('uuid');
+      return Promise.all(promiseList).then(() => {
+        bot.logger.info("Added node for new file: '%s'", fileObj.urlWithBucket);
+
+        return result.records[0].get('uuid');
+      })
     })
     .catch(function (err) {
       bot.logger.info("Could not add node for new file '%s': %s", fileObj.urlWithBucket, err.code);

@@ -44,7 +44,10 @@ function linkFile(event, uuid) {
   return new Promise(function(resolve,reject) {
     // Download the file to a temp location. To be deleted when we finish.
     minioClient.fGetObject(bucket, key, tmpPath, function(err) {
-      if (err) { return reject(err) }
+      if (err) {
+        bot.logger.error("Could not download file from Minio. Purging from system for safety.");
+        return purge(uri, bucket, key).then(()=>{reject(err)});
+      }
 
       //check if the file is corrupt
       checkCorrupt(tmpPath, uri)
@@ -69,6 +72,7 @@ function linkFile(event, uuid) {
         .catch(function(error) {
           bot.logger.error("Operation failed: %s", error.message);
           fs.unlink(tmpPath, function() {resolve();});
+          return deleteFromMinio(uri, bucket, key)
         });
       })
     })
