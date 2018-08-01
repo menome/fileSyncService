@@ -1,7 +1,7 @@
 {
   "name": "filesyncservice",
   "private": true,
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Synchronizes data from Minio with nodes in neo4j",
   "repository": "https://github.com/menome",
   "license": "Commercial",
