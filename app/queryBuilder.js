@@ -31,7 +31,7 @@ function addFileQuery(fileObj, newUuid) {
     Name:  fileObj.urlWithBucket.substring(fileObj.urlWithBucket.lastIndexOf('/')+1), //decodeURIComponent(fileObj.key.substring(fileObj.key.lastIndexOf('/')+1)),
     Size: fileObj.size,
     Uri: fileObj.urlWithBucket,
-    LastModified: fileObj.lastModified.toUTCString(),
+    // LastModified: fileObj.lastModified.toUTCString(),
     ImportId: fileObj.importId,
     PendingUpload: false,
     Extension: fileObj.urlWithBucket.split('.').pop()
