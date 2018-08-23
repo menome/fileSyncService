@@ -2,7 +2,7 @@
   "minio": {
     "endPoint": "minio",
     "port": 9000,
-    "secure": false,
+    "useSSL": false,
     "accessKey": "abcd123",
     "secretKey": "abcd12345",
     "fileBucket": "filestore"
